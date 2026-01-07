@@ -1,21 +1,18 @@
 from fastapi import FastAPI
-
-from app.api.routes import health
-from app.core.config import settings
+from app.core.config import APP_NAME
 from app.core.logging import setup_logging
+from app.db.init_db import init_db
+
+setup_logging()
+
+app = FastAPI(title=APP_NAME)
 
 
-def create_app() -> FastAPI:
-    setup_logging()
-
-    app = FastAPI(
-        title=settings.app_name,
-        debug=settings.debug,
-    )
-
-    app.include_router(health.router, prefix="/api")
-
-    return app
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 
-app = create_app()
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
